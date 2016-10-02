@@ -29,7 +29,8 @@ To decrypt do the same this time calling the "Decrypt" method.
  - 32 Octets salt used to encrypt the message iv and key
  - 96 Octets encrypted iv and key 32 octets passphrase hmac used to authenticate the user passphrase
  - 10 Octets date created (purely optional)
- - 33 Octets unused Encrypted message 
+ - 33 Octets unused
+ - Encrypted message 
  - 32 Octets message hmac used to verify the message
 
 Android client available at the [Google Play Store](https://play.google.com/store/apps/details?id=digitaltakesroot.com.BitShuffle)

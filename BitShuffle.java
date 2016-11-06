@@ -32,9 +32,9 @@ public class BitShuffle {
 public boolean Encrypt(String userPassphrase, String filePath, String savePath)
 {
     byte[] ben = "__EN".getBytes();
-    //stream reader buffer size
+    //stream reader readBuffer size
     int bufferSize = 3200;
-    byte[] buffer = new byte[bufferSize];
+    byte[] readBuffer = new byte[bufferSize];
     int blockSize = 256;
     int keySize = 32;
     byte[] header = new byte[4+ 1+ 32+32 +96 + 10 + 65];
@@ -93,7 +93,7 @@ public boolean Encrypt(String userPassphrase, String filePath, String savePath)
         int readLength =0;
 
         boolean headerWritten = false;
-        while ((read = fr.read(buffer)) !=-1)
+        while ((read = fr.read(readBuffer)) !=-1)
         {
          if (headerWritten == false)
          {
@@ -118,28 +118,27 @@ public boolean Encrypt(String userPassphrase, String filePath, String savePath)
 
          if(aggregator+read!= fileLength)
          {
-             byte[]tempBuffer = new byte[cipher.getUpdateOutputSize(read)];
-             readLength += cipher.processBytes(buffer, 0, read, tempBuffer, 0);
-             outStream.write(tempBuffer,0,tempBuffer.length);
-             messageHmac.update(tempBuffer, 0, tempBuffer.length);
+             byte[] cipherBuffer = new byte[cipher.getUpdateOutputSize(read)];
+             readLength += cipher.processBytes(readBuffer, 0, read,  cipherBuffer, 0);
+             outStream.write(cipherBuffer,0, cipherBuffer.length);
+             messageHmac.update(cipherBuffer, 0,  cipherBuffer.length);
              aggregator += read;
          }
          else
          {
-             byte[]tempBuffer = new byte[cipher.getOutputSize(read)];
-             readLength = cipher.processBytes(buffer, 0, read, tempBuffer, 0);
-             cipher.doFinal(tempBuffer, readLength);
-             messageHmac.update(tempBuffer, 0, tempBuffer.length);
+             byte[]cipherBuffer = new byte[cipher.getOutputSize(read)];
+             readLength = cipher.processBytes(readBuffer, 0, read, cipherBuffer, 0);
+             cipher.doFinal(cipherBuffer, readLength);
+             messageHmac.update(cipherBuffer, 0, cipherBuffer.length);
              messageHmac.doFinal(messageHmacBuf, 0);
 
-             byte[] bufferPlusHmac = new byte[tempBuffer.length + messageHmacBuf.length];
-             //copies last encrypted buffer data into the bufferPlusHmac
-             System.arraycopy(tempBuffer, 0,bufferPlusHmac , 0, tempBuffer.length);
-             System.arraycopy(messageHmacBuf, 0, bufferPlusHmac, tempBuffer.length, messageHmacBuf.length);
+             byte[] bufferPlusHmac = new byte[cipherBuffer.length + messageHmacBuf.length];
+             //copies last encrypted cipherBuffer data into the bufferPlusHmac
+             System.arraycopy(cipherBuffer, 0,bufferPlusHmac , 0, cipherBuffer.length);
+             System.arraycopy(messageHmacBuf, 0, bufferPlusHmac, cipherBuffer.length, messageHmacBuf.length);
              outStream.write(bufferPlusHmac,0,bufferPlusHmac.length);
          }
         }
-
         outStream.flush();
     }
     catch (IOException | IllegalArgumentException | IllegalStateException | DataLengthException | InvalidCipherTextException e)
@@ -170,18 +169,16 @@ public boolean Encrypt(String userPassphrase, String filePath, String savePath)
     {
       return false;
     }
-    return true;
-  
+    return true; 
 }
-
 
 public boolean Decrypt(String userPassphrase, String filepath, String savePath)
 {
     byte[] keyEncryptionIv = new byte[32];
-    //stream reader buffer size
     byte[] salt = new byte[32];
+	//stream reader buffer size
     int bufferSize = 3200;
-    byte[] buffer = new byte[bufferSize];
+    byte[] readBuffer = new byte[bufferSize];
     int blockSize = 256;
     int keySize = 32;
     //header where the encrypted (Iv,Salt), (Iv,Key), date is stored
@@ -210,7 +207,7 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
         System.arraycopy(header, 4 + 1, keyEncryptionIv, 0, keyEncryptionIv.length);
         //we extract the salt arrray
         System.arraycopy(header, 4+ 1 +keyEncryptionIv.length, salt, 0, salt.length);
-         //we extract the bytes that represent the encrypted keyEncryptionIv and key
+        //we extract the bytes that represent the encrypted keyEncryptionIv and key
         System.arraycopy(header, 4+1 +keyEncryptionIv.length + salt.length, encryptedCompositeIVKey, 0, encryptedCompositeIVKey.length);
         //we extract the hmac used to authenticate the user's password
         System.arraycopy(header,4+1+keyEncryptionIv.length +salt.length+encryptedCompositeIVKey.length, embeddedAuthenHmac, 0, embeddedAuthenHmac.length);
@@ -235,8 +232,6 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
         //we extract the date here
         byte[] dateCreated= new byte[10];
         System.arraycopy(header,4+1+keyEncryptionIv.length +salt.length+encryptedCompositeIVKey.length+embeddedAuthenHmac.length, dateCreated,0,dateCreated.length);
-
-
         PaddedBufferedBlockCipher cipher = new PaddedBufferedBlockCipher(
         new CBCBlockCipher(new RijndaelEngine(blockSize)), new PKCS7Padding());
 
@@ -244,7 +239,7 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
         cipher.init(false, ivAndKey);
 
         HMac hmac = new HMac(new SHA256Digest());
-        byte[] resBuf = new byte[hmac.getMacSize()];
+        byte[] hmacBuffer = new byte[hmac.getMacSize()];
         hmac.init(new KeyParameter(messageEncryptionKey));
 
         outStream = new FileOutputStream (savePath);
@@ -257,28 +252,27 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
         long aggregator = 0;
         int read = 0;
 
-        while ((read = fr.read(buffer)) !=-1)
+        while ((read = fr.read(readBuffer)) !=-1)
         {
             if(aggregator+read != fileLength)
             {
-                cos.write(buffer,0,read);
-                hmac.update(buffer, 0, buffer.length);
+                cos.write(readBuffer,0,read);
+                hmac.update(readBuffer, 0, readBuffer.length);
                 aggregator +=read;
             }
             else
-            {
-                //we minus 32 there since we dont want to include the message
+            {   //we minus 32 there since we dont want to include the message
                 //hmac
-                hmac.update(buffer, 0, read-32);
-                hmac.doFinal(resBuf, 0);
-                cos.write(buffer,0,read-32);
+                hmac.update(readBuffer, 0, read-32);
+                hmac.doFinal(hmacBuffer, 0);
+                cos.write(readBuffer,0,read-32);
                 lastRead = read;
             }
         }
           cos.flush();
           byte[] embeddedHmac = new byte[32];
-          System.arraycopy(buffer, lastRead-32, embeddedHmac, 0, embeddedHmac.length);
-          if (!Arrays.equals(resBuf, embeddedHmac))
+          System.arraycopy(readBuffer, lastRead-32, embeddedHmac, 0, embeddedHmac.length);
+          if (!Arrays.equals(hmacBuffer, embeddedHmac))
           {
               result = false;
           }
@@ -315,7 +309,6 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
     return true;
 }
 
-
 private byte[] GeneratePassphaseHmac(byte[] iv, byte[] salt, byte [] key)
 {
     //create hmac using the key from the previous and the messageIV
@@ -328,8 +321,6 @@ private byte[] GeneratePassphaseHmac(byte[] iv, byte[] salt, byte [] key)
     return passBuff;
 }
  
-
-
 private byte[] RndNumGen(int size)
 {
     SecureRandom random = new SecureRandom();
@@ -337,7 +328,6 @@ private byte[] RndNumGen(int size)
     random.nextBytes(phrase);
     return phrase;
 }
-
 
 private byte[] EncryptIVandKey(byte[] userIv, String userPassphrase, byte[]salt ,byte[] messageIV, byte[] messageKey)
 {
@@ -379,7 +369,6 @@ private byte[] EncryptIVandKey(byte[] userIv, String userPassphrase, byte[]salt 
     }
 return null;
 }
-
 
 private byte[] DecryptIVandKey(byte[] iv, String userPassphrase, byte[] salt ,byte[] compositeIVKey)
 {

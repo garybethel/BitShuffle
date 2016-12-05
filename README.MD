@@ -6,10 +6,10 @@ BitShuffle is a file encryption program. It uses a 256 bit key with Rijndael 256
 
 #### How it works
 
-The user supplies a passphrase that is used to encrypt a randomly generated iv and the key created by it. This key is used to encrypt the message.
+The user supplies a passphrase that creates a 256 bit key that is used to encrypt a randomly generated *key and its iv. This key is used to encrypt the message.
 The salt and iv used to encrypt the message iv and key is saved in the file header.
-The encrypted message iv and key is then also embedded into the file header
-The message key itself is created using a 40 character passphrase that is randomly generated.
+The encrypted message iv and key is then also embedded into the file header.
+*The message key itself is created using a 40 character passphrase that is randomly generated.
 
 The idea behind doing things like this is that if the user wanted to change the passphrase then they only needed to generate a new key and encrypt the message iv and key instead of the entire message itself. There are also other instances where handling the encryption like this may be useful
 
@@ -27,7 +27,8 @@ To decrypt do the same this time calling the "Decrypt" method.
  - 1 Octet BitShuffle encryption version number 
  - 32 Octets iv used to encrypt the message iv and key
  - 32 Octets salt used to encrypt the message iv and key
- - 96 Octets encrypted iv and key 32 octets passphrase hmac used to authenticate the user passphrase
+ - 96 Octets encrypted iv and key 
+ - 32 octets passphrase hmac used to authenticate the user passphrase
  - 10 Octets date created (purely optional)
  - 33 Octets unused
  - Encrypted message 

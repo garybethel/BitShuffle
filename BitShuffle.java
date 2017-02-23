@@ -270,6 +270,7 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
             }
         }
           cos.flush();
+		  cos.close();
           byte[] embeddedHmac = new byte[32];
           System.arraycopy(readBuffer, lastRead-32, embeddedHmac, 0, embeddedHmac.length);
           if (!Arrays.equals(hmacBuffer, embeddedHmac))

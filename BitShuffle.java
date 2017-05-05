@@ -1,6 +1,4 @@
-
 package doencrypt;
-
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -27,11 +25,11 @@ import org.bouncycastle.crypto.paddings.PKCS7Padding;
 public class BitShuffle {
 
  private byte[] passAuthenEncKey = new byte [32];
- private byte[] passAuthenDecKey = new byte [32];
+ private byte[] embeddedAuthenHmac = new byte[32];
 
 public boolean Encrypt(String userPassphrase, String filePath, String savePath)
 {
-    byte[] ben = "__EN".getBytes();
+    final byte[] ben = "__EN".getBytes();
     //stream reader readBuffer size
     int bufferSize = 3200;
     byte[] readBuffer = new byte[bufferSize];
@@ -185,7 +183,6 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
     byte[] header = new byte[240];
     byte[] messageEncryptionIV = new byte[32];
     byte[] messageEncryptionKey = new byte[32];
-    byte[] embeddedAuthenHmac = new byte[32];
 
     FileOutputStream outStream = null;
     FileInputStream fr = null;
@@ -215,16 +212,10 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
         byte[] decryptedCompositeIVKey = DecryptIVandKey(keyEncryptionIv,userPassphrase, salt,encryptedCompositeIVKey);
         if(decryptedCompositeIVKey == null)
         {   
-            //incorrect password supplied or file corrupt
+            //file most likely corrupt
             return false;    
         }
-        //generate the hmac of the users passphrase using the embedded keyEncryptionIv and salt
-        byte[] passBuff = GeneratePassphaseHmac(keyEncryptionIv, salt, passAuthenDecKey);
-        if (!Arrays.equals(passBuff, embeddedAuthenHmac))
-        {
-            //incorrect password supplied
-            return false;
-        }
+        
         ///////////////////////////////////////
         //we extract the main message encryption keyEncryptionIv and key after being decrypted above
         System.arraycopy(decryptedCompositeIVKey, 0, messageEncryptionIV, 0, messageEncryptionIV.length);
@@ -270,7 +261,8 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
             }
         }
           cos.flush();
-		  cos.close();
+          cos.close();
+		  
           byte[] embeddedHmac = new byte[32];
           System.arraycopy(readBuffer, lastRead-32, embeddedHmac, 0, embeddedHmac.length);
           if (!Arrays.equals(hmacBuffer, embeddedHmac))
@@ -279,7 +271,7 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
           }
     }
 
-    catch (IOException | IllegalArgumentException e)
+    catch (IOException | IllegalArgumentException |InvalidCipherTextException e)
     {
         System.out.println(e.toString());
         result = false;
@@ -330,7 +322,7 @@ private byte[] RndNumGen(int size)
     return phrase;
 }
 
-private byte[] EncryptIVandKey(byte[] userIv, String userPassphrase, byte[]salt ,byte[] messageIV, byte[] messageKey)
+private byte[] EncryptIVandKey(byte[] userIv, String userPassphrase, byte[]salt ,byte[] messageIV, byte[] messageKey) throws IllegalArgumentException, DataLengthException, IllegalStateException, InvalidCipherTextException
 {
     int blockSize = 256;
     int keySize = 32;
@@ -366,12 +358,11 @@ private byte[] EncryptIVandKey(byte[] userIv, String userPassphrase, byte[]salt 
     }
     catch(IllegalArgumentException | IllegalStateException | DataLengthException | InvalidCipherTextException e)
     {
-        System.out.println(e.toString());
+        throw e;
     }
-return null;
 }
 
-private byte[] DecryptIVandKey(byte[] iv, String userPassphrase, byte[] salt ,byte[] compositeIVKey)
+private byte[] DecryptIVandKey(byte[] iv, String userPassphrase, byte[] salt ,byte[] compositeIVKey) throws InvalidCipherTextException
 {
     int blockSize = 256;
     int keySize = 32;
@@ -384,8 +375,14 @@ private byte[] DecryptIVandKey(byte[] iv, String userPassphrase, byte[] salt ,by
 
         KeyParameter params = (KeyParameter)generator.generateDerivedParameters(256);
         byte[] key = params.getKey();
-        passAuthenDecKey = key;
-
+        byte[] passAuthenDecKey = key;
+        //generate the hmac of the users passphrase using the embedded keyEncryptionIv and salt
+        byte[] passBuff = GeneratePassphaseHmac(iv, salt, passAuthenDecKey);
+        if (!Arrays.equals(passBuff, embeddedAuthenHmac))
+        {
+             //incorrect password supplied
+            throw new InvalidCipherTextException("Incorrect password");
+        }
         PaddedBufferedBlockCipher cipher = new PaddedBufferedBlockCipher(
         new CBCBlockCipher(new RijndaelEngine(blockSize)), new PKCS7Padding());
 
@@ -400,10 +397,9 @@ private byte[] DecryptIVandKey(byte[] iv, String userPassphrase, byte[] salt ,by
         return decryptedMessage;
     }
     catch(IllegalArgumentException | IllegalStateException | DataLengthException | InvalidCipherTextException e)
-    {
-        System.out.println(e.toString());
+    {      
+        throw e;
     }
- return null;
 }
 
 

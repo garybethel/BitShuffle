@@ -1,0 +1,38 @@
+D:\wamp\www\PhpLabs\Cryptography\Cryptography\obj\Debug\ResolveAssemblyReference.cache
+D:\wamp\www\PhpLabs\Cryptography\Cryptography\bin\Debug\Cryptography.exe
+D:\wamp\www\PhpLabs\Cryptography\Cryptography\bin\Debug\Cryptography.pdb
+D:\wamp\www\PhpLabs\Cryptography\Cryptography\obj\Debug\Cryptography.exe
+D:\wamp\www\PhpLabs\Cryptography\Cryptography\obj\Debug\Cryptography.pdb
+C:\Users\Gary\Desktop\CryptographyCsharp\Cryptography\obj\Debug\Cryptography.exe
+C:\Users\Gary\Desktop\CryptographyCsharp\Cryptography\obj\Debug\Cryptography.pdb
+C:\Users\Gary\Desktop\CryptographyCsharp\Cryptography\bin\Debug\Cryptography.exe
+C:\Users\Gary\Desktop\CryptographyCsharp\Cryptography\bin\Debug\Cryptography.pdb
+C:\Users\Gary\Desktop\CryptographyCsharp\Cryptography\bin\Debug\Cryptography.exe.config
+C:\Users\Gary\Desktop\CryptographyCsharp\Cryptography\obj\Debug\Cryptography.csprojResolveAssemblyReference.cache
+C:\wamp\www\crypto\CryptographyCsharp\Cryptography\bin\Debug\Cryptography.exe.config
+C:\wamp\www\crypto\CryptographyCsharp\Cryptography\bin\Debug\Cryptography.exe
+C:\wamp\www\crypto\CryptographyCsharp\Cryptography\bin\Debug\Cryptography.pdb
+C:\wamp\www\crypto\CryptographyCsharp\Cryptography\bin\Debug\BouncyCastle.Crypto.dll
+C:\wamp\www\crypto\CryptographyCsharp\Cryptography\obj\Debug\Cryptography.exe
+C:\wamp\www\crypto\CryptographyCsharp\Cryptography\obj\Debug\Cryptography.pdb
+C:\wamp\www\crypto\CryptographyCsharp\Cryptography\obj\Debug\Cryptography.csprojResolveAssemblyReference.cache
+E:\CryptographyCsharp\Cryptography\bin\Debug\Cryptography.exe.config
+E:\CryptographyCsharp\Cryptography\bin\Debug\Cryptography.exe
+E:\CryptographyCsharp\Cryptography\bin\Debug\Cryptography.pdb
+E:\CryptographyCsharp\Cryptography\bin\Debug\BouncyCastle.Crypto.dll
+E:\CryptographyCsharp\Cryptography\obj\Debug\Cryptography.exe
+E:\CryptographyCsharp\Cryptography\obj\Debug\Cryptography.pdb
+C:\Users\GaryB\Documents\Visual Studio 2013\Projects\Cryptography\bin\Debug\Cryptography.pdb
+C:\Users\GaryB\Documents\Visual Studio 2013\Projects\Cryptography\bin\Debug\BouncyCastle.Crypto.dll
+C:\Users\GaryB\Documents\Visual Studio 2013\Projects\Cryptography\obj\Debug\Cryptography.pdb
+C:\Users\GaryB\Documents\Visual Studio 2013\Projects\Cryptography\obj\Debug\Cryptography.csprojResolveAssemblyReference.cache
+C:\Users\GaryB\Documents\Visual Studio 2013\Projects\Cryptography\bin\Debug\Cryptography.dll.config
+C:\Users\GaryB\Documents\Visual Studio 2013\Projects\Cryptography\bin\Debug\Cryptography.dll
+C:\Users\GaryB\Documents\Visual Studio 2013\Projects\Cryptography\obj\Debug\Cryptography.dll
+C:\GitProjects\BitShuffle\C#\Cryptography\bin\Debug\Cryptography.dll.config
+C:\GitProjects\BitShuffle\C#\Cryptography\bin\Debug\Cryptography.dll
+C:\GitProjects\BitShuffle\C#\Cryptography\bin\Debug\Cryptography.pdb
+C:\GitProjects\BitShuffle\C#\Cryptography\bin\Debug\BouncyCastle.Crypto.dll
+C:\GitProjects\BitShuffle\C#\Cryptography\obj\Debug\Cryptography.csprojResolveAssemblyReference.cache
+C:\GitProjects\BitShuffle\C#\Cryptography\obj\Debug\Cryptography.dll
+C:\GitProjects\BitShuffle\C#\Cryptography\obj\Debug\Cryptography.pdb

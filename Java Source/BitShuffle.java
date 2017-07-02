@@ -43,101 +43,101 @@ public boolean Encrypt(String userPassphrase, String filePath, String savePath)
     FileOutputStream outStream = null;
     FileInputStream fr = null;
 
-   SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yyyy");
-   Date date = new Date();
-   byte[] dateCreated = dateFormat.format(date).getBytes();
-   boolean result = true;
-   //Randomly generated the keyEncryptionIv and key that would be used for the message encryption
-   byte[] messageRandomkeyPhrase = RndNumGen(40);
-   byte[] messageIV= RndNumGen(32);
+    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yyyy");
+    Date date = new Date();
+    byte[] dateCreated = dateFormat.format(date).getBytes();
+    boolean result = true;
+    //Randomly generated the keyEncryptionIv and key that would be used for the message encryption
+    byte[] messageRandomkeyPhrase = RndNumGen(40);
+    byte[] messageIV= RndNumGen(32);
 
-   try{
-       PBEParametersGenerator generator = new PKCS5S2ParametersGenerator();
-       generator.init(PBEParametersGenerator
-                 .PKCS5PasswordToUTF8Bytes((new String(messageRandomkeyPhrase, "UTF-8"))
-                 .toCharArray()), RndNumGen(32)/*used for salt*/, 10000);
+    try{
+        PBEParametersGenerator generator = new PKCS5S2ParametersGenerator();
+        generator.init(PBEParametersGenerator
+                  .PKCS5PasswordToUTF8Bytes((new String(messageRandomkeyPhrase, "UTF-8"))
+                  .toCharArray()), RndNumGen(32)/*used for salt*/, 10000);
 
-       KeyParameter params = (KeyParameter)generator.generateDerivedParameters(256);
-       //256 bit key
-       byte[]key = params.getKey();
+        KeyParameter params = (KeyParameter)generator.generateDerivedParameters(256);
+        //256 bit key
+        byte[]key = params.getKey();
 
-       //We pass a randomly genereated keyEncryptionIv and the Key used to encrypt the main message,
-       //to be encrypted using the user's passphrase and random IV
-       byte[] encryptedIVKeyPrefex = EncryptIVandKey(keyEncryptionIv, userPassphrase,salt, messageIV,key );
+        //We pass a randomly genereated keyEncryptionIv and the Key used to encrypt the main message,
+        //to be encrypted using the user's passphrase and random IV
+        byte[] encryptedIVKeyPrefex = EncryptIVandKey(keyEncryptionIv, userPassphrase,salt, messageIV,key );
 
-       PaddedBufferedBlockCipher cipher = new PaddedBufferedBlockCipher(
-       new CBCBlockCipher(new RijndaelEngine(blockSize)), new PKCS7Padding());
+        PaddedBufferedBlockCipher cipher = new PaddedBufferedBlockCipher(
+        new CBCBlockCipher(new RijndaelEngine(blockSize)), new PKCS7Padding());
 
-       CipherParameters ivAndKey = new ParametersWithIV(new KeyParameter(key, 0, keySize), messageIV, 0, keySize);
-       cipher.init(true, ivAndKey);
-       //generate the hmac of the users passphrase using the embedded keyEncryptionIv and salt
-       byte[] passBuff = GeneratePassphaseHmac(keyEncryptionIv, salt, passAuthenEncKey);
-       
-       //Hmac used to authenticate the validity of the message
-       HMac messageHmac = new HMac(new SHA256Digest());
-       byte[] messageHmacBuf = new byte[messageHmac.getMacSize()];
-       messageHmac.init(new KeyParameter(key));
+        CipherParameters ivAndKey = new ParametersWithIV(new KeyParameter(key, 0, keySize), messageIV, 0, keySize);
+        cipher.init(true, ivAndKey);
+        //generate the hmac of the users passphrase using the embedded keyEncryptionIv and salt
+        byte[] passBuff = GeneratePassphaseHmac(keyEncryptionIv, salt, passAuthenEncKey);
 
-        fr = new FileInputStream(filePath);
-        outStream = new FileOutputStream (savePath);
+        //Hmac used to authenticate the validity of the message
+        HMac messageHmac = new HMac(new SHA256Digest());
+        byte[] messageHmacBuf = new byte[messageHmac.getMacSize()];
+        messageHmac.init(new KeyParameter(key));
 
-        long fileLength = fr.available();
-        if(fileLength == 0)
-        {
-            throw new IllegalArgumentException("File size error");
-        }
-        long aggregator = 0;
-        int read = 0;
-        int readLength =0;
+         fr = new FileInputStream(filePath);
+         outStream = new FileOutputStream (savePath);
 
-        boolean headerWritten = false;
-        while ((read = fr.read(readBuffer)) !=-1)
-        {
-         if (headerWritten == false)
+         long fileLength = fr.available();
+         if(fileLength == 0)
          {
-             System.arraycopy(ben, 0,header , 0, ben.length);
-             //puts the readLength version byte into the header
-             header[ben.length] = versionNumber;
-             //puts the encrypted keyEncryptionIv used to encrypt the key into the header
-             System.arraycopy(keyEncryptionIv,0, header, ben.length+1, keyEncryptionIv.length);
-             //salt used to encrypt the messsage keyEncryptionIv and key
-             System.arraycopy(salt,0, header, ben.length+1+ keyEncryptionIv.length, salt.length);
-             //puts the encrypted Iv and key into the header array
-             System.arraycopy(encryptedIVKeyPrefex,0, header, ben.length+1+ keyEncryptionIv.length+salt.length
-                     , encryptedIVKeyPrefex.length);
-             //puts the hmac used to authenticate the user passphrase into the header)
-             System.arraycopy(passBuff,0,header , ben.length +1+ keyEncryptionIv.length+salt.length + encryptedIVKeyPrefex.length, passBuff.length);
-             //puts the date created into the header
-             System.arraycopy(dateCreated, 0,header , ben.length + 1 + keyEncryptionIv.length+salt.length + encryptedIVKeyPrefex.length +passBuff.length
-                     , dateCreated.length);
-             outStream.write(header,0,header.length);
-             headerWritten = true;
+             throw new IllegalArgumentException("File size error");
          }
+         long aggregator = 0;
+         int read = 0;
+         int readLength =0;
 
-         if(aggregator+read!= fileLength)
+         boolean headerWritten = false;
+         while ((read = fr.read(readBuffer)) !=-1)
          {
-             byte[] cipherBuffer = new byte[cipher.getUpdateOutputSize(read)];
-             readLength += cipher.processBytes(readBuffer, 0, read,  cipherBuffer, 0);
-             outStream.write(cipherBuffer,0, cipherBuffer.length);
-             messageHmac.update(cipherBuffer, 0,  cipherBuffer.length);
-             aggregator += read;
-         }
-         else
-         {
-             byte[]cipherBuffer = new byte[cipher.getOutputSize(read)];
-             readLength = cipher.processBytes(readBuffer, 0, read, cipherBuffer, 0);
-             cipher.doFinal(cipherBuffer, readLength);
-             messageHmac.update(cipherBuffer, 0, cipherBuffer.length);
-             messageHmac.doFinal(messageHmacBuf, 0);
+          if (headerWritten == false)
+          {
+              System.arraycopy(ben, 0,header , 0, ben.length);
+              //puts the readLength version byte into the header
+              header[ben.length] = versionNumber;
+              //puts the encrypted keyEncryptionIv used to encrypt the key into the header
+              System.arraycopy(keyEncryptionIv,0, header, ben.length+1, keyEncryptionIv.length);
+              //salt used to encrypt the messsage keyEncryptionIv and key
+              System.arraycopy(salt,0, header, ben.length+1+ keyEncryptionIv.length, salt.length);
+              //puts the encrypted Iv and key into the header array
+              System.arraycopy(encryptedIVKeyPrefex,0, header, ben.length+1+ keyEncryptionIv.length+salt.length
+                      , encryptedIVKeyPrefex.length);
+              //puts the hmac used to authenticate the user passphrase into the header)
+              System.arraycopy(passBuff,0,header , ben.length +1+ keyEncryptionIv.length+salt.length + encryptedIVKeyPrefex.length, passBuff.length);
+              //puts the date created into the header
+              System.arraycopy(dateCreated, 0,header , ben.length + 1 + keyEncryptionIv.length+salt.length + encryptedIVKeyPrefex.length +passBuff.length
+                      , dateCreated.length);
+              outStream.write(header,0,header.length);
+              headerWritten = true;
+          }
 
-             byte[] bufferPlusHmac = new byte[cipherBuffer.length + messageHmacBuf.length];
-             //copies last encrypted cipherBuffer data into the bufferPlusHmac
-             System.arraycopy(cipherBuffer, 0,bufferPlusHmac , 0, cipherBuffer.length);
-             System.arraycopy(messageHmacBuf, 0, bufferPlusHmac, cipherBuffer.length, messageHmacBuf.length);
-             outStream.write(bufferPlusHmac,0,bufferPlusHmac.length);
+          if(aggregator+read!= fileLength)
+          {
+              byte[] cipherBuffer = new byte[cipher.getUpdateOutputSize(read)];
+              readLength += cipher.processBytes(readBuffer, 0, read,  cipherBuffer, 0);
+              outStream.write(cipherBuffer,0, cipherBuffer.length);
+              messageHmac.update(cipherBuffer, 0,  cipherBuffer.length);
+              aggregator += read;
+          }
+          else
+          {
+              byte[]cipherBuffer = new byte[cipher.getOutputSize(read)];
+              readLength = cipher.processBytes(readBuffer, 0, read, cipherBuffer, 0);
+              cipher.doFinal(cipherBuffer, readLength);
+              messageHmac.update(cipherBuffer, 0, cipherBuffer.length);
+              messageHmac.doFinal(messageHmacBuf, 0);
+
+              byte[] bufferPlusHmac = new byte[cipherBuffer.length + messageHmacBuf.length];
+              //copies last encrypted cipherBuffer data into the bufferPlusHmac
+              System.arraycopy(cipherBuffer, 0,bufferPlusHmac , 0, cipherBuffer.length);
+              System.arraycopy(messageHmacBuf, 0, bufferPlusHmac, cipherBuffer.length, messageHmacBuf.length);
+              outStream.write(bufferPlusHmac,0,bufferPlusHmac.length);
+          }
          }
-        }
-        outStream.flush();
+         outStream.flush();
     }
     catch (IOException | IllegalArgumentException | IllegalStateException | DataLengthException | InvalidCipherTextException e)
     {

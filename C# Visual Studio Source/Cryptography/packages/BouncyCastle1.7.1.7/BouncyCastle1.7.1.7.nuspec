@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>BouncyCastle1.7</id>
+    <version>1.7</version>
+    <title>BouncyCastle1.7</title>
+    <authors>Jack</authors>
+    <owners>Jack</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Release includes the full lightweight API, as well as APIs for OpenPGP, CMS, TLS, X.509, PKCS#12, TSP, and Certificate Path validation.</description>
+    <summary>Release includes the full lightweight API, as well as APIs for OpenPGP, CMS, TLS, X.509, PKCS#12, TSP, and Certificate Path validation.</summary>
+    <releaseNotes />
+    <copyright />
+    <language />
+  </metadata>
+</package>

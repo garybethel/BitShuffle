@@ -1,5 +1,9 @@
 ## BitShuffle
 
+
+![Alt text](/BitShuffle.jpg?raw=true "BitShuffle")
+
+
 #### What it is
 BitShuffle is a file encryption program. It uses a 256 bit key with Rijndael 256 bit blocksize and a cbc cipher to encrypt files.
 
@@ -38,7 +42,4 @@ To decrypt do the same, this time calling the "Decrypt" method.
 
 Android client available at the [Google Play Store](https://play.google.com/store/apps/details?id=digitaltakesroot.com.BitShuffle)
 
-
-
-![Alt text](/BitShuffle.jpg?raw=true "BitShuffle")
 

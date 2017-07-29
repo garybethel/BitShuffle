@@ -11,7 +11,7 @@ BitShuffle is a file encryption program. It uses a 256 bit key with Rijndael 256
 #### How it works
 
 The user supplies a passphrase that creates a 256 bit key. That is used to encrypt an iv and a 256 bit *key that was created using a randomly generated passhprase. 
-This randomnly created key and iv are used to encrypt the message.
+This randomly created key and iv are used to encrypt the message.
 The salt and iv used to encrypt the message iv and key is saved in the file header.
 The encrypted message iv and key is then also embedded into the file header.
 *The message key itself is created using a 40 character passphrase that is randomly generated.
@@ -20,6 +20,12 @@ The idea behind doing things like this is that if the user wanted to change the 
 instead of the entire message itself. There are also other instances where handling the encryption like this may be useful
 
 #### Usage
+
+**Visual Studio C# Project**
+Simply open the Visual Studio WPF project. Bouncy Castle cryptography library was used only in the HMAC generation for the C# project.
+
+
+**Java**
 
 Being that java does not have native libraries for Rijndael 256 bit block size, Bouncy Castle cryptography library was used. You will have to download this library and include it in the project.
 
@@ -40,6 +46,6 @@ To decrypt do the same, this time calling the "Decrypt" method.
  - Encrypted message 
  - 32 Octets message hmac used to verify the message
 
-Android client available at the [Google Play Store](https://play.google.com/store/apps/details?id=digitaltakesroot.com.BitShuffle)
+My Android client is available at the [Google Play Store](https://play.google.com/store/apps/details?id=digitaltakesroot.com.BitShuffle)
 
 

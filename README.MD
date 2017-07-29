@@ -37,3 +37,8 @@ To decrypt do the same, this time calling the "Decrypt" method.
  - 32 Octets message hmac used to verify the message
 
 Android client available at the [Google Play Store](https://play.google.com/store/apps/details?id=digitaltakesroot.com.BitShuffle)
+
+
+
+![Alt text](/BitShuffle.jpg?raw=true "BitShuffle")
+

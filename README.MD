@@ -22,6 +22,7 @@ instead of the entire message itself. There are also other instances where handl
 #### Usage
 
 **Visual Studio C# Project**
+
 Simply open the Visual Studio WPF project. Bouncy Castle cryptography library was used only in the HMAC generation for the C# project.
 
 

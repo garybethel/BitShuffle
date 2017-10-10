@@ -117,11 +117,11 @@ namespace BitShuffle
                 {
                     MessageBox.Show("Passphrases do not match", "BitShuffle", MessageBoxButton.OK, MessageBoxImage.Exclamation);   
                 }
-                if (String.IsNullOrEmpty(TxtKey.Password))
+                else if (String.IsNullOrEmpty(TxtKey.Password))
                 {
                     MessageBox.Show("Passphrase field empty", "BitShuffle", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
-                if(showchkbox ==true &&  string.IsNullOrEmpty(TxtOldKey.Password))
+                else if(showchkbox ==true &&  string.IsNullOrEmpty(TxtOldKey.Password))
                 {
                     MessageBox.Show("Existing Passphrase field empty", "BitShuffle", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
@@ -129,49 +129,41 @@ namespace BitShuffle
                 {
                     if (TxtKey.Password.Length >= 8)
                     {
-                        if (encryptionFilePath != null)
+                        //if the file selected is an encrypted file
+                        if (validator.IsFileEncrypted(encryptionFilePath))
                         {
-                            //if the file selected is an encrypted file
-                            if (validator.IsFileEncrypted(encryptionFilePath))
-                            {
-                                if (validator.ChkFileVersion(encryptionFilePath) == 6)
-                                {  
-                                    //if the checkbox to change encrypted key 
-                                    if(showchkbox == true)
-                                    {
-                                        LblStatus.Content = "Proceessing file...please wait";
-                                        Task<bool> encryptionTask = new Task<bool>(() =>encryptor.ChangePassphrase(TxtOldKey.Password, TxtKey.Password, encryptionFilePath, directoryPath,
-                                                          fileName, fileExtension));
-                                        //MessageBox.Show("fdfdfd");
-                                        encryptionTask.Start();
-                                        success = await encryptionTask;
-                                    }
-                                    else{
-                                        BtnEncrypt.IsEnabled = false;
-                                        LblStatus.Content = "Proceessing file...please wait";
-                                        Task<bool> decryptionTask = new Task<bool>(()=>encryptor.Decrypt(TxtKey.Password, encryptionFilePath, directoryPath,
-                                                           fileName, fileExtension));
-                                        decryptionTask.Start();
-                                        success = await decryptionTask;
-                                    }
-                                }        
-                            }
-                            //non encrypted file selected. We must now encrypt the file
-                            else
-                            {
-                                BtnEncrypt.IsEnabled = false;
-                                LblStatus.Content = "Proceessing file...please wait";
-                                Task<bool> encryptionTask = new Task<bool>(() =>encryptor.Encrypt(TxtKey.Password, encryptionFilePath, directoryPath, fileName,
-                                                      fileExtension));
-                                encryptionTask.Start();
-                                success = await encryptionTask;
-                            }
+                            if (validator.ChkFileVersion(encryptionFilePath) == 6)
+                            {  
+                                //if the checkbox to change encrypted key 
+                                if(showchkbox == true)
+                                {
+                                    LblStatus.Content = "Proceessing file...please wait";
+                                    Task<bool> encryptionTask = new Task<bool>(() =>encryptor.ChangePassphrase(TxtOldKey.Password, TxtKey.Password, encryptionFilePath, directoryPath,
+                                                      fileName, fileExtension));
+                                    encryptionTask.Start();
+                                    success = await encryptionTask;
+                                }
+                                else{
+                                    BtnEncrypt.IsEnabled = false;
+                                    LblStatus.Content = "Proceessing file...please wait";
+                                    Task<bool> decryptionTask = new Task<bool>(()=>encryptor.Decrypt(TxtKey.Password, encryptionFilePath, directoryPath,
+                                                       fileName, fileExtension));
+                                    decryptionTask.Start();
+                                    success = await decryptionTask;
+                                }
+                            }        
                         }
-
+                        //non encrypted file selected. We must now encrypt the file
                         else
                         {
-                            MessageBox.Show("No file selected", "BitShuffle", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                            BtnEncrypt.IsEnabled = false;
+                            LblStatus.Content = "Proceessing file...please wait";
+                            Task<bool> encryptionTask = new Task<bool>(() =>encryptor.Encrypt(TxtKey.Password, encryptionFilePath, directoryPath, fileName,
+                                                  fileExtension));
+                            encryptionTask.Start();
+                            success = await encryptionTask;
                         }
+                        
                     }
 
                     else

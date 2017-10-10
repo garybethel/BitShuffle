@@ -19,7 +19,8 @@ The encrypted message iv and key is then also embedded into the file header.
 The idea behind doing things like this is that if the user wanted to change the passphrase then they only needed to generate a new key and encrypt the message iv and key 
 instead of the entire message itself. There are also other instances where handling the encryption like this may be useful
 
-#### Usage
+#### Usage:
+
 
 **Visual Studio C# Project**
 

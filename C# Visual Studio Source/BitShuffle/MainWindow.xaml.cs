@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Win32;
 using Cryptography;
+using System.Diagnostics;
 
 
 namespace BitShuffle
@@ -33,7 +34,10 @@ namespace BitShuffle
         private string fileName;
         private string fileExtension;
         private bool showchkbox = false;
- 
+        private System.TimeSpan startTime;
+        private System.TimeSpan elaspedTime;
+        private string elapseTime;
+        
 
         public MainWindow()
         {
@@ -65,7 +69,7 @@ namespace BitShuffle
         private void BtnOpenFile_Click(object sender, RoutedEventArgs e)
         {
             LblStatus.Content = "";
-
+                                 
             //if (fileDialogBox.DialogResult.HasValue && fileDialogBox.DialogResult.Value)
             if (fileDialogBox.ShowDialog() == DialogResult.GetValueOrDefault(true))
             {
@@ -74,37 +78,44 @@ namespace BitShuffle
                 fileName = System.IO.Path.GetFileNameWithoutExtension(fileDialogBox.FileName);
                 directoryPath = System.IO.Path.GetDirectoryName(fileDialogBox.FileName);
 
-                if (validator.IsFileEncrypted(encryptionFilePath))
-                {
-                    BtnEncrypt.Visibility = Visibility.Visible;
-                    BtnEncrypt.Content = "Decrypt";
-                    TxtKeyConfirmation.Visibility = Visibility.Hidden;
-                    LblConfirmPass.Visibility = Visibility.Hidden;
-
-                    //we want to show the checkbox if the file is an encrypted file
-                    chkchangePass.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    BtnEncrypt.Visibility = Visibility.Visible;
-                    BtnEncrypt.Content = "Encrypt";
-
-                    //we want to show the confirmation passphrase label and text box
-                    TxtKeyConfirmation.Visibility = Visibility.Visible ;
-                    LblConfirmPass.Visibility = Visibility.Visible;
-
-                    //we dont want to show the checkbox if the file is not an encrypted file
-                    chkchangePass.Visibility = Visibility.Hidden;
-                    showchkbox = false;
-                    lblExistingPass.Visibility = Visibility.Hidden;
-                    TxtOldKey.Visibility = Visibility.Hidden;
-                }
+                Manipulate_Window_Objects();
                 
             }
         }
 
+
+        private void Window_Drop(object sender, DragEventArgs e)
+        {
+            string[] files = null;
+            chkchangePass.IsChecked = false;
+
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                files = e.Data.GetData(DataFormats.FileDrop, true) as string[];
+            }
+
+            if (files != null)
+            {       //We dont want a folder    
+                    if (!System.IO.Directory.Exists(files[0]))
+                    {
+                        encryptionFilePath = TxtFileLocation.Text = files[0];
+                        fileExtension = System.IO.Path.GetExtension(files[0]);
+                        fileName = System.IO.Path.GetFileNameWithoutExtension(files[0]);
+                        directoryPath = System.IO.Path.GetDirectoryName(files[0]);
+
+                        Manipulate_Window_Objects();
+                    }     
+            }
+            else {
+                MessageBox.Show("No files selected", "BitShuffle", MessageBoxButton.OK, MessageBoxImage.Exclamation);                       
+            }
+            
+        }
+
         private async void BtnEncrypt_Click(object sender, RoutedEventArgs e)
-        {        
+        {
+            Stopwatch stopWatch;
+
             bool success = false;
             
             if (!fileDialogBox.CheckFileExists)
@@ -137,35 +148,66 @@ namespace BitShuffle
                                 //if the checkbox to change encrypted key 
                                 if(showchkbox == true)
                                 {
+                                    stopWatch = new Stopwatch();
+                                    stopWatch.Start();   
+
                                     LblStatus.Content = "Proceessing file...please wait";
                                     Task<bool> encryptionTask = new Task<bool>(() =>encryptor.ChangePassphrase(TxtOldKey.Password, TxtKey.Password, encryptionFilePath, directoryPath,
                                                       fileName, fileExtension));
                                     encryptionTask.Start();
                                     success = await encryptionTask;
+                                    
+                                    //elaspedTime = DateTime.Now.TimeOfDay - startTime;
+                                    stopWatch.Stop();
+                                    //elapseTime = stopWatch.Elapsed.ToString();
+                                    
+                                    TimeSpan ts = stopWatch.Elapsed;
+                                    elapseTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                    ts.Hours, ts.Minutes, ts.Seconds,
+                                    ts.Milliseconds / 10);
+                                    //elapseTime = ts.ToString();
+
                                 }
                                 else{
+
+                                    stopWatch = new Stopwatch();
+                                    stopWatch.Start();
+
                                     BtnEncrypt.IsEnabled = false;
                                     LblStatus.Content = "Proceessing file...please wait";
                                     Task<bool> decryptionTask = new Task<bool>(()=>encryptor.Decrypt(TxtKey.Password, encryptionFilePath, directoryPath,
                                                        fileName, fileExtension));
                                     decryptionTask.Start();
                                     success = await decryptionTask;
+                                   
+                                    stopWatch.Stop();
+                                    TimeSpan ts = stopWatch.Elapsed;
+                                    elapseTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                    ts.Hours, ts.Minutes, ts.Seconds,
+                                    ts.Milliseconds / 10);
                                 }
                             }        
                         }
                         //non encrypted file selected. We must now encrypt the file
                         else
                         {
+                            stopWatch = new Stopwatch();
+                            stopWatch.Start();   
+                            
                             BtnEncrypt.IsEnabled = false;
                             LblStatus.Content = "Proceessing file...please wait";
                             Task<bool> encryptionTask = new Task<bool>(() =>encryptor.Encrypt(TxtKey.Password, encryptionFilePath, directoryPath, fileName,
                                                   fileExtension));
                             encryptionTask.Start();
                             success = await encryptionTask;
-                        }
-                        
-                    }
+                            stopWatch.Stop();
 
+                            TimeSpan ts = stopWatch.Elapsed;
+                            elapseTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                            ts.Hours, ts.Minutes, ts.Seconds,
+                            ts.Milliseconds / 10);
+                        }      
+                    }
                     else
                     {
                         MessageBox.Show("Passphrase needs to be at least 8 characters in length", "BitShuffle",MessageBoxButton.OK, MessageBoxImage.Exclamation);
@@ -175,7 +217,7 @@ namespace BitShuffle
                 if (success == true)
                 {
                     BtnEncrypt.IsEnabled = true;
-                    LblStatus.Content = "Operation Successful";                  
+                    LblStatus.Content = "Operation Successful in " + elapseTime;                  
                 }
                 else
                 {
@@ -185,6 +227,40 @@ namespace BitShuffle
             }
         }
 
+        private void TxtFileLocation_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
+        
+        private void Manipulate_Window_Objects() {
+
+            if (validator.IsFileEncrypted(encryptionFilePath))
+            {
+                BtnEncrypt.Visibility = Visibility.Visible;
+                BtnEncrypt.Content = "Decrypt";
+                TxtKeyConfirmation.Visibility = Visibility.Hidden;
+                LblConfirmPass.Visibility = Visibility.Hidden;
+
+                //we want to show the checkbox if the file is an encrypted file
+                chkchangePass.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                BtnEncrypt.Visibility = Visibility.Visible;
+                BtnEncrypt.Content = "Encrypt";
+
+                //we want to show the confirmation passphrase label and text box
+                TxtKeyConfirmation.Visibility = Visibility.Visible;
+                LblConfirmPass.Visibility = Visibility.Visible;
+
+                //we dont want to show the checkbox if the file is not an encrypted file
+                chkchangePass.Visibility = Visibility.Hidden;
+                showchkbox = false;
+                lblExistingPass.Visibility = Visibility.Hidden;
+                TxtOldKey.Visibility = Visibility.Hidden;
+            }
+        
+        }
     }
 }
 

@@ -1,26 +1,25 @@
 ﻿<Window x:Class="BitShuffle.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="BitShuffle" Height="301" Width="552" ResizeMode="NoResize" Icon="icon.ico" BorderThickness="0">
+        Title="BitShuffle" Height="301" Width="552" ResizeMode="NoResize" Icon="icon.ico" BorderThickness="0" AllowDrop="True" Drop="Window_Drop">
     <Grid>
         <Grid>
             <!--<Grid.Effect>
                 <DropShadowEffect Color="#FFADB6C3"/>
             </Grid.Effect>-->
-            <TextBox x:Name="TxtFileLocation" HorizontalAlignment="Left" Height="26" Margin="135,22,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="376" TabIndex="0" IsReadOnly="True"/>
+            <TextBox x:Name="TxtFileLocation" HorizontalAlignment="Left" Height="26" Margin="135,22,0,0" Text="" VerticalAlignment="Top" Width="376" TabIndex="0" IsReadOnly="True" TextChanged="TxtFileLocation_TextChanged" BorderThickness="1,0,0,1" BorderBrush="#186679" MaxLines="1"/>
             <Button x:Name="BtnOpenFile" Content="Select File" HorizontalAlignment="Left" Margin="135,60,0,0" VerticalAlignment="Top" Width="75" Click="BtnOpenFile_Click" Height="28"  TabIndex="1"/>
-            <PasswordBox x:Name="TxtOldKey" HorizontalAlignment="Left" Height="26"  VerticalAlignment="Top" Width="376" Margin="135,103,0,0" TabIndex="2" Visibility="Hidden"/>
-            <PasswordBox x:Name="TxtKey" HorizontalAlignment="Left" Height="26"  VerticalAlignment="Top" Width="376" Margin="135,143,0,0" TabIndex="2"/>
-            <PasswordBox x:Name="TxtKeyConfirmation" HorizontalAlignment="Left" Height="26" VerticalAlignment="Top" Width="376" Margin="135,182,0,0"  TabIndex="3"/>
+            <PasswordBox x:Name="TxtOldKey" HorizontalAlignment="Left" Height="26"  VerticalAlignment="Top" Width="376" Margin="135,103,0,0" TabIndex="2" Visibility="Hidden" BorderThickness="1,0,0,1" BorderBrush="#186679"/>
+            <PasswordBox x:Name="TxtKey" HorizontalAlignment="Left" Height="26"  VerticalAlignment="Top" Width="376" Margin="135,143,0,0" TabIndex="2" BorderThickness="1,0,0,1" BorderBrush="#186679"/>
+            <PasswordBox x:Name="TxtKeyConfirmation" HorizontalAlignment="Left" Height="26" VerticalAlignment="Top" Width="376" Margin="135,182,0,0"  TabIndex="3" BorderThickness="1,0,0,1" BorderBrush="#186679"/>
             <Button x:Name="BtnEncrypt" HorizontalAlignment="Left" Margin="135,227,0,0" VerticalAlignment="Top" Width="75" Click="BtnEncrypt_Click" Height="28"  TabIndex="4" />
             <Label Content="File Path" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="72,22,0,0"/>
             <Label Content="Passphrase" HorizontalAlignment="Left" Margin="56,143,0,0" VerticalAlignment="Top" Width="71"/>
-            <Label x:Name="LblStatus" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="249,225,0,0" Width="172" Height="30"/>
+            <Label x:Name="LblStatus" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="249,225,0,0" Width="217" Height="30"/>
             <Label x:Name ="LblConfirmPass" Content="Confirm Passphrase" HorizontalAlignment="Left" Margin="13,182,0,0" VerticalAlignment="Top" Width="114"/>
             <Label x:Name ="lblExistingPass" Content="Existing Passphrase" HorizontalAlignment="Left" Margin="13,103,0,0" VerticalAlignment="Top" Width="114" Visibility="Hidden"/>
             <CheckBox x:Name="chkchangePass" Content="Change Passphrase" HorizontalAlignment="Left" Margin="228,60,0,0" VerticalAlignment="Top" Checked="CheckBox_Checked"
-	    Unchecked="CheckBox_Unchecked" Visibility="Hidden"/>
-
+	            Unchecked="CheckBox_Unchecked" Visibility="Hidden"/>
         </Grid>
     </Grid>
 </Window>

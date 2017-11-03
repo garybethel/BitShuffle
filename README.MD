@@ -8,6 +8,16 @@
 BitShuffle is a file encryption program. It uses a 256 bit key with Rijndael 256 bit blocksize and a cbc cipher to encrypt files.
 
 
+
+
+##### What is new (11/03/17)
+  
+  - Updated the UI slightly to be more in keeping with the Android client.
+  - Added file drag and drop.
+  - Added a stopwatch (counts down to the millisecond).
+
+
+
 #### How it works
 
 The user supplies a passphrase that creates a 256 bit key. That is used to encrypt an iv and a 256 bit *key that was created using a randomly generated passhprase. 

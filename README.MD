@@ -60,4 +60,5 @@ To decrypt do the same, this time calling the "Decrypt" method.
 
 My Android client is available at the [Google Play Store](https://play.google.com/store/apps/details?id=digitaltakesroot.com.BitShuffle)
 
-
+##### Contact info
+I can be contacted at garybethelsgit@digitaltakesroot.com

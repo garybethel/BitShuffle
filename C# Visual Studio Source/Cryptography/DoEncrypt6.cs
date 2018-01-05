@@ -479,7 +479,7 @@ namespace Cryptography
                                                                 (endingIndex - 1) - (startingIndex + 1));
                         int digit = Convert.ToInt32(stringDigit);
                         //we then get the file name without the bracket inclosed integer
-                        string newFileName = fileName.Substring(0, fileName.Length - 3);
+                        string newFileName = fileName.Substring(0, fileName.Length - startingIndex);
                         //find if the file with the incremented bracketed integer exits if so we increment the integer
                         while (File.Exists(directoryPath + "\\" + newFileName + "(" + digit + ")" + fileExtension + tempExtension))
                         {
@@ -518,7 +518,7 @@ namespace Cryptography
                         //we convert that string into an integer so we could increment it
                         int digit = Convert.ToInt32(stringDigit);
                         //we then get the file name without the bracket inclosed integer
-                        string newFileName = fileName.Substring(0, fileName.Length - 3);
+                        string newFileName = fileName.Substring(0,startingIndex);
                         //find if the file with the incremented bracketed integer exits if so we increment the integer
                         while (File.Exists(directoryPath + "\\" + newFileName + "(" + digit + ")" + fileExtension + newFileExtension))
                         {
@@ -558,7 +558,7 @@ namespace Cryptography
                                                                 (endingIndex - 1) - (startingIndex + 1));
                         int digit = Convert.ToInt32(stringDigit);
                         //we then get the file name without the bracket inclosed integer
-                        string newFileName = fileName.Substring(0, fileName.Length - 3);
+                        string newFileName = fileName.Substring(0,(startingIndex));
                         //find if the file with the incremented bracketed integer exits if so we increment the integer
                         while (File.Exists(directoryPath + "\\" + newFileName + "(" + digit + ")" + fileExtension))
                         {

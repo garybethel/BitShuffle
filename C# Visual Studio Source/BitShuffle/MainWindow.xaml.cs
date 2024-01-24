@@ -128,11 +128,11 @@ namespace BitShuffle
                 {
                     MessageBox.Show("Passphrases do not match", "BitShuffle", MessageBoxButton.OK, MessageBoxImage.Exclamation);   
                 }
-                else if (String.IsNullOrEmpty(TxtKey.Password))
+                else if (string.IsNullOrEmpty(TxtKey.Password))
                 {
                     MessageBox.Show("Passphrase field empty", "BitShuffle", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
-                else if(showchkbox ==true &&  string.IsNullOrEmpty(TxtOldKey.Password))
+                else if(showchkbox == true &&  string.IsNullOrEmpty(TxtOldKey.Password))
                 {
                     MessageBox.Show("Existing Passphrase field empty", "BitShuffle", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
@@ -162,7 +162,7 @@ namespace BitShuffle
                                     //elapseTime = stopWatch.Elapsed.ToString();
                                     
                                     TimeSpan ts = stopWatch.Elapsed;
-                                    elapseTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                    elapseTime = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                                     ts.Hours, ts.Minutes, ts.Seconds,
                                     ts.Milliseconds / 10);
                                     //elapseTime = ts.ToString();
@@ -182,7 +182,7 @@ namespace BitShuffle
                                    
                                     stopWatch.Stop();
                                     TimeSpan ts = stopWatch.Elapsed;
-                                    elapseTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                    elapseTime = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                                     ts.Hours, ts.Minutes, ts.Seconds,
                                     ts.Milliseconds / 10);
                                 }
@@ -203,7 +203,7 @@ namespace BitShuffle
                             stopWatch.Stop();
 
                             TimeSpan ts = stopWatch.Elapsed;
-                            elapseTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                            elapseTime = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                             ts.Hours, ts.Minutes, ts.Seconds,
                             ts.Milliseconds / 10);
                         }      

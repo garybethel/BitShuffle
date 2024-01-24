@@ -35,7 +35,7 @@ public boolean Encrypt(String userPassphrase, String filePath, String savePath)
     byte[] readBuffer = new byte[bufferSize];
     int blockSize = 256;
     int keySize = 32;
-    byte[] header = new byte[4+ 1+ 32+32 +96 + 10 + 65];
+    byte[] header = new byte[4 + 1 + 32 + 32 + 96 + 10 + 65];
     byte versionNumber = (byte)0x06;
     
     byte[] salt = RndNumGen(32);
@@ -88,10 +88,10 @@ public boolean Encrypt(String userPassphrase, String filePath, String savePath)
          }
          long aggregator = 0;
          int read = 0;
-         int readLength =0;
+         int readLength = 0;
 
          boolean headerWritten = false;
-         while ((read = fr.read(readBuffer)) !=-1)
+         while ((read = fr.read(readBuffer)) != -1)
          {
           if (headerWritten == false)
           {
@@ -99,16 +99,16 @@ public boolean Encrypt(String userPassphrase, String filePath, String savePath)
               //puts the readLength version byte into the header
               header[ben.length] = versionNumber;
               //puts the encrypted keyEncryptionIv used to encrypt the key into the header
-              System.arraycopy(keyEncryptionIv,0, header, ben.length+1, keyEncryptionIv.length);
+              System.arraycopy(keyEncryptionIv,0, header, ben.length + 1, keyEncryptionIv.length);
               //salt used to encrypt the messsage keyEncryptionIv and key
-              System.arraycopy(salt,0, header, ben.length+1+ keyEncryptionIv.length, salt.length);
+              System.arraycopy(salt,0, header, ben.length + 1 + keyEncryptionIv.length, salt.length);
               //puts the encrypted Iv and key into the header array
-              System.arraycopy(encryptedIVKeyPrefex,0, header, ben.length+1+ keyEncryptionIv.length+salt.length
+              System.arraycopy(encryptedIVKeyPrefex,0, header, ben.length + 1 + keyEncryptionIv.length+salt.length
                       , encryptedIVKeyPrefex.length);
               //puts the hmac used to authenticate the user passphrase into the header)
               System.arraycopy(passBuff,0,header , ben.length +1+ keyEncryptionIv.length+salt.length + encryptedIVKeyPrefex.length, passBuff.length);
               //puts the date created into the header
-              System.arraycopy(dateCreated, 0,header , ben.length + 1 + keyEncryptionIv.length+salt.length + encryptedIVKeyPrefex.length +passBuff.length
+              System.arraycopy(dateCreated, 0,header , ben.length + 1 + keyEncryptionIv.length+salt.length + encryptedIVKeyPrefex.length + passBuff.length
                       , dateCreated.length);
               outStream.write(header,0,header.length);
               headerWritten = true;
@@ -203,11 +203,11 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
         //we extract the keyEncryptionIv
         System.arraycopy(header, 4 + 1, keyEncryptionIv, 0, keyEncryptionIv.length);
         //we extract the salt arrray
-        System.arraycopy(header, 4+ 1 +keyEncryptionIv.length, salt, 0, salt.length);
+        System.arraycopy(header, 4 + 1 +keyEncryptionIv.length, salt, 0, salt.length);
         //we extract the bytes that represent the encrypted keyEncryptionIv and key
         System.arraycopy(header, 4+1 +keyEncryptionIv.length + salt.length, encryptedCompositeIVKey, 0, encryptedCompositeIVKey.length);
         //we extract the hmac used to authenticate the user's password
-        System.arraycopy(header,4+1+keyEncryptionIv.length +salt.length+encryptedCompositeIVKey.length, embeddedAuthenHmac, 0, embeddedAuthenHmac.length);
+        System.arraycopy(header,4 + 1 + keyEncryptionIv.length +salt.length+encryptedCompositeIVKey.length, embeddedAuthenHmac, 0, embeddedAuthenHmac.length);
         //decrypyt the composite Iv and key
         byte[] decryptedCompositeIVKey = DecryptIVandKey(keyEncryptionIv,userPassphrase, salt,encryptedCompositeIVKey);
         if(decryptedCompositeIVKey == null)
@@ -222,7 +222,7 @@ public boolean Decrypt(String userPassphrase, String filepath, String savePath)
         System.arraycopy(decryptedCompositeIVKey, 32, messageEncryptionKey, 0, messageEncryptionKey.length);
         //we extract the date here
         byte[] dateCreated= new byte[10];
-        System.arraycopy(header,4+1+keyEncryptionIv.length +salt.length+encryptedCompositeIVKey.length+embeddedAuthenHmac.length, dateCreated,0,dateCreated.length);
+        System.arraycopy(header,4 + 1 + keyEncryptionIv.length + salt.length+encryptedCompositeIVKey.length+embeddedAuthenHmac.length, dateCreated,0,dateCreated.length);
         PaddedBufferedBlockCipher cipher = new PaddedBufferedBlockCipher(
         new CBCBlockCipher(new RijndaelEngine(blockSize)), new PKCS7Padding());
 
@@ -392,7 +392,7 @@ private byte[] DecryptIVandKey(byte[] iv, String userPassphrase, byte[] salt ,by
         byte[] decryptedMessage = new byte[64];
 
         int length = cipher.processBytes(compositeIVKey, 0, compositeIVKey.length, decryptedMessage, 0);
-        length+= cipher.doFinal(decryptedMessage, length);
+        length += cipher.doFinal(decryptedMessage, length);
 
         return decryptedMessage;
     }

@@ -15,11 +15,10 @@ namespace Cryptography
        
     public class DoEncry6
     {
-        private Validate validator = new Validate();
         private byte[] passAuthenKeyEnc = new byte[32];
         private byte[] embeddedAuthenHmac = new byte[32];
 
-        public bool Encrypt(string _userPassphrase, string filepath, string directoryPath, string fileName,
+        public bool Encrypt(string userPassphrase, string filepath, string directoryPath, string fileName,
                             string fileExtension)
         {
             byte[] key = new byte[32];
@@ -32,7 +31,7 @@ namespace Cryptography
             byte[] messageRandomkeyPhrase = CreateRandonKeyPhrase();
             byte[] messageIV = GetIv();
             byte[] salt = GetSalt();
-            byte[] firstIV = GetIv();
+            byte[] userIv = GetIv();
             bool result = true;
             FileStream fileStream = null;
             FileStream fr = null;
@@ -41,7 +40,7 @@ namespace Cryptography
                 Rfc2898DeriveBytes k1 = new Rfc2898DeriveBytes(messageRandomkeyPhrase, GetSalt(), 10000);
                 key = k1.GetBytes(32);
                 //We pass a randomly genereated iv and passphrase that are used to encrypt the iv and key for the message
-                byte[] encryptedIVKeyPrefex = this.EncryptIVandKey(firstIV, _userPassphrase, salt, messageIV, key);
+                byte[] encryptedIVKeyPrefex = EncryptIVandKey(userIv, userPassphrase, salt, messageIV, key);
 
                 using (Rijndael myRijndael = Rijndael.Create())
                 {
@@ -57,19 +56,19 @@ namespace Cryptography
                     {
                         FileInfo ff = new FileInfo(filepath);
                         byte[] buffer = new byte[bufferSize];
-                        string savePath = this.GenerateFileName(filepath, directoryPath, fileName, fileExtension);
+                        string savePath = GenerateFileName(filepath, directoryPath, fileName, fileExtension);
                         fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write);
                         
                         //We generate the hmac used for the userpassphrase 
-                        byte[] passBuff = GeneratePassphaseHmac(firstIV, salt, passAuthenKeyEnc);
+                        byte[] passBuff = GeneratePassphaseHmac(userIv, salt, passAuthenKeyEnc);
 
                         HMac hmac = new HMac(new Sha256Digest());
                         hmac.Init(new KeyParameter(key));
                         byte[] resBuf = new byte[hmac.GetMacSize()];
-                        byte[] newmac = new byte[32];
+                        byte[] newmac = new byte[3200];
                         // C# native Hmac
-                        //HMACSHA256 hmac2 = new HMACSHA256(key);
-
+                        HMACSHA256 hmac2 = new HMACSHA256(key);
+                      
                         int read = 0;
                         long aggregator = 0;               
                         using (fr = ff.OpenRead())
@@ -83,17 +82,17 @@ namespace Cryptography
                                     //puts the file version byte into the header
                                     header[ben.Length] = versionNumber;
                                     //puts the iv into the header byte array
-                                    Array.Copy(firstIV, 0, header, ben.Length + 1, firstIV.Length);
+                                    Array.Copy(userIv, 0, header, ben.Length + 1, userIv.Length);
                                     //puts the salt into the header array
-                                    Array.Copy(salt, 0, header, ben.Length + 1 + firstIV.Length,
+                                    Array.Copy(salt, 0, header, ben.Length + 1 + userIv.Length,
                                                salt.Length);
                                     //puts the encrypted iv and key into the header array
-                                    Array.Copy(encryptedIVKeyPrefex, 0, header, ben.Length + 1 + firstIV.Length + salt.Length
+                                    Array.Copy(encryptedIVKeyPrefex, 0, header, ben.Length + 1 + userIv.Length + salt.Length
                                          , encryptedIVKeyPrefex.Length);
                                     //puts the hmac used to authenticate the user passphrase into the header)
-                                    Array.Copy(passBuff, 0, header, ben.Length + 1 + firstIV.Length + salt.Length + encryptedIVKeyPrefex.Length, passBuff.Length);
+                                    Array.Copy(passBuff, 0, header, ben.Length + 1 + userIv.Length + salt.Length + encryptedIVKeyPrefex.Length, passBuff.Length);
                                     //puts the date created into the header
-                                    Array.Copy(dateCreated, 0, header, ben.Length + 1 + firstIV.Length + salt.Length + encryptedIVKeyPrefex.Length +passBuff.Length
+                                    Array.Copy(dateCreated, 0, header, ben.Length + 1 + userIv.Length + salt.Length + encryptedIVKeyPrefex.Length +passBuff.Length
                                          , dateCreated.Length);
 
                                     fileStream.Write(header, 0, header.Length);
@@ -107,13 +106,12 @@ namespace Cryptography
                                     fileStream.Write(enc, 0, enc.Length);
                                     aggregator += read;
                                 }
-
                                 else
                                 {
                                     byte[] enc1 = cipher.TransformFinalBlock(buffer, 0, read);
                                     hmac.BlockUpdate(enc1, 0, enc1.Length);
                                     hmac.DoFinal(resBuf, 0);
-
+                                    
                                     int enc1size = enc1.Length;
                                     Array.Resize(ref enc1, enc1.Length + resBuf.Length);
                                     Array.Copy(resBuf, 0, enc1, enc1size, resBuf.Length);
@@ -149,7 +147,7 @@ namespace Cryptography
             return true;
         }
 
-        public bool Decrypt(string _userPassphrase, string filepath, string directoryPath, string fileName, string fileExtension)
+        public bool Decrypt(string userPassphrase, string filepath, string directoryPath, string fileName, string fileExtension)
         {
             byte[] iv = new byte[32];
             const int bufferSize = 3200;
@@ -191,7 +189,7 @@ namespace Cryptography
                     //we extract the hmac used to authenticate the user's password
                     Array.Copy(header, 4 + 1 + iv.Length + salt.Length + encryptedCompositeIVKey.Length, embeddedAuthenHmac, 0, embeddedAuthenHmac.Length);
                     //decrypyt the composite iv and key
-                    byte[] decryptedCompositeIVKey = DecryptIVandKey(iv, _userPassphrase, salt, encryptedCompositeIVKey);
+                    byte[] decryptedCompositeIVKey = DecryptIVandKey(iv, userPassphrase, salt, encryptedCompositeIVKey);
                     //we extract the main message encryption iv and key after being decrypted above
                     Array.Copy(decryptedCompositeIVKey, 0, messageEncryptionIV, 0, messageEncryptionIV.Length);
                     Array.Copy(decryptedCompositeIVKey, 32, messageEncryptionKey, 0, messageEncryptionKey.Length);
@@ -206,7 +204,7 @@ namespace Cryptography
                 hmac.Init(new KeyParameter(messageEncryptionKey));
                 byte[] resBuf = new byte[hmac.GetMacSize()];
 
-                string savePath = this.GenerateFileName(filepath, directoryPath, fileName, fileExtension);
+                string savePath = GenerateFileName(filepath, directoryPath, fileName, fileExtension);
                 fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write);
 
                 using (Rijndael myRijndael = Rijndael.Create())
@@ -248,7 +246,7 @@ namespace Cryptography
                                     byte[] embededHmac = new byte[32];
                                     //we extract the hmac from the file and place it into its own array
                                     Array.Copy(buffer, read - 32, embededHmac, 0, embededHmac.Length);
-                                    if (this.CompareHmacs(embededHmac, resBuf) == false)
+                                    if (!CompareHmacs(embededHmac, resBuf))
                                     {
                                         return false;
                                     }
@@ -281,7 +279,7 @@ namespace Cryptography
         }
 
 
-        public Boolean ChangePassphrase (string _userPassphrase,String newUserPassphrase, string filepath, string directoryPath, string fileName, string fileExtension)
+        public bool ChangePassphrase (string userPassphrase,string newUserPassphrase, string filepath, string directoryPath, string fileName, string fileExtension)
         {
             byte[] iv = new byte[32];
             //buffer cannot be less than 40 due it having to read the file prefix and IV
@@ -324,7 +322,7 @@ namespace Cryptography
                     //we extract the hmac used to authenticate the user's password
                     Array.Copy(header, 4 + 1 + iv.Length + salt.Length + encryptedCompositeIVKey.Length, embeddedAuthenHmac, 0, embeddedAuthenHmac.Length);
                     //decrypyt the composite iv and key
-                    byte[] decryptedCompositeIVKey = DecryptIVandKey(iv, _userPassphrase, salt, encryptedCompositeIVKey);
+                    byte[] decryptedCompositeIVKey = DecryptIVandKey(iv, userPassphrase, salt, encryptedCompositeIVKey);
                    
                     ///////////////////////////////////////
 
@@ -338,11 +336,11 @@ namespace Cryptography
 
                     salt = GetSalt();
                     byte[] firstIV = GetIv();
-                    byte[] encryptedIVKeyPrefex = this.EncryptIVandKey(firstIV, newUserPassphrase, salt, messageEncryptionIV, messageEncryptionKey);
+                    byte[] encryptedIVKeyPrefex = EncryptIVandKey(firstIV, newUserPassphrase, salt, messageEncryptionIV, messageEncryptionKey);
                     //we now need to create a new passphrase hmac using the new passphrase
                     byte[] passBuff = GeneratePassphaseHmac(firstIV, salt, passAuthenKeyEnc);
 
-                    savePath = this.GenerateFileNewName(filepath, directoryPath, fileName, fileExtension);
+                    savePath = GenerateFileNewName(filepath, directoryPath, fileName, fileExtension);
                     outStream = new FileStream(savePath, FileMode.Create, FileAccess.Write);
                     
                     read = 0;
@@ -393,7 +391,7 @@ namespace Cryptography
         return true;
         }
 
-        private Boolean DeleteFile(String filepath) {
+        private Boolean DeleteFile(string filepath) {
             try
             {
                 File.Delete(filepath); 
@@ -405,7 +403,7 @@ namespace Cryptography
             }     
         }
 
-        private Boolean RenameFile(String filePath, String newFilePath)
+        private Boolean RenameFile(string filePath, string newFilePath)
         {
             try
             {
@@ -586,14 +584,14 @@ namespace Cryptography
             return !hMac1.Where((t, j) => t != hMac2[j]).Any();
         }
 
-        private byte[] EncryptIVandKey(byte[] _userIv, String _userPassphrase, byte[] _salt, byte[] _messageIV, byte[] _messageKey)
+        private byte[] EncryptIVandKey(byte[] userIv, string userPassphrase, byte[] salt, byte[] messageIV, byte[] messageKey)
         {
             int blockSize = 256;
             int keySize = 32;
-            byte[] compositeIVKey = new byte[_messageKey.Length + _messageIV.Length];
-            Array.Copy(_messageIV, 0, compositeIVKey, 0, _messageIV.Length);
-            Array.Copy(_messageKey, 0, compositeIVKey, _messageIV.Length, _messageKey.Length);
-            Rfc2898DeriveBytes k1 = new Rfc2898DeriveBytes(_userPassphrase, _salt, 10000);
+            byte[] compositeIVKey = new byte[messageKey.Length + messageIV.Length];
+            Array.Copy(messageIV, 0, compositeIVKey, 0, messageIV.Length);
+            Array.Copy(messageKey, 0, compositeIVKey, messageIV.Length, messageKey.Length);
+            Rfc2898DeriveBytes k1 = new Rfc2898DeriveBytes(userPassphrase, salt, 10000);
             byte[] key = k1.GetBytes(keySize);
             passAuthenKeyEnc = key;
             try
@@ -601,7 +599,7 @@ namespace Cryptography
                 using (Rijndael myRijndael = Rijndael.Create())
                 {
                     myRijndael.BlockSize = blockSize;
-                    myRijndael.IV = _userIv;
+                    myRijndael.IV = userIv;
                     myRijndael.Key = key;
                     myRijndael.Mode = CipherMode.CBC;
                     myRijndael.Padding = PaddingMode.PKCS7;
@@ -619,12 +617,12 @@ namespace Cryptography
             }         
         }
 
-        private byte[] DecryptIVandKey(byte[] _userIv, String _userPassphrase, byte[] _salt, byte[] _compositeIVKey)
+        private byte[] DecryptIVandKey(byte[] userIv, string userPassphrase, byte[] salt, byte[] compositeIVKey)
         {
             int blockSize = 256;
             int keySize = 32;
             byte[] decryptedMessage = new byte[64];
-            Rfc2898DeriveBytes k1 = new Rfc2898DeriveBytes(_userPassphrase, _salt, 10000);
+            Rfc2898DeriveBytes k1 = new Rfc2898DeriveBytes(userPassphrase, salt, 10000);
             byte[] key = k1.GetBytes(keySize);
             byte[] passAuthenKeyDec = key;
 
@@ -633,11 +631,11 @@ namespace Cryptography
                 using (Rijndael myRijndael = Rijndael.Create())
                 {
                     myRijndael.BlockSize = blockSize;
-                    myRijndael.IV = _userIv;
+                    myRijndael.IV = userIv;
                     myRijndael.Key = key;
                     myRijndael.Mode = CipherMode.CBC;
                     myRijndael.Padding = PaddingMode.PKCS7;
-                    byte[] passBuff = GeneratePassphaseHmac(_userIv, _salt, passAuthenKeyDec);
+                    byte[] passBuff = GeneratePassphaseHmac(userIv, salt, passAuthenKeyDec);
                     //compute the hmac of the users passphrase using the embedded iv and salt 
                     if (!passBuff.SequenceEqual(embeddedAuthenHmac))
                     {         
@@ -645,7 +643,7 @@ namespace Cryptography
                     }
                     using (ICryptoTransform ict = myRijndael.CreateDecryptor())
                     {
-                        decryptedMessage = ict.TransformFinalBlock(_compositeIVKey, 0, _compositeIVKey.Length);
+                        decryptedMessage = ict.TransformFinalBlock(compositeIVKey, 0, compositeIVKey.Length);
                     }
                     return decryptedMessage;
                 }
